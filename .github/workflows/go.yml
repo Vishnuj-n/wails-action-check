@@ -8,11 +8,12 @@ on:
 env:
   # Necessary for most environments as build failure can occur due to OOM issues
   NODE_OPTIONS: "--max-old-space-size=4096"
+  # Fixes the Node.js 20 deprecation warning by explicitly using Node 24
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     strategy:
-      # Failure in one platform build won't impact the others
       fail-fast: false
       matrix:
         build:
@@ -29,14 +30,15 @@ jobs:
     runs-on: ${{ matrix.build.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # Updated for Node 20 support and better performance
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Build wails
-        uses: snider/build@v3 # Updated to latest orchestrated version
+        # Bypass the root discovery bug by calling the wails2 stack directly
+        uses: snider/build/actions/build/wails2@v3
         id: build
         with:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
-          package: false # Set to true to automatically upload artifacts and create releases
+          package: false
