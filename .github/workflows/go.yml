@@ -3,42 +3,42 @@ name: Wails build
 on:
   push:
     tags:
+    # Match any new tag
       - '*'
 
 env:
   # Necessary for most environments as build failure can occur due to OOM issues
   NODE_OPTIONS: "--max-old-space-size=4096"
-  # Fixes the Node.js 20 deprecation warning by explicitly using Node 24
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     strategy:
+    # Failure in one platform build won't impact the others
       fail-fast: false
       matrix:
         build:
           - name: 'App'
-            platform: 'linux/amd64'
+            platform:  'linux/amd64'
             os: 'ubuntu-latest'
           - name: 'App'
-            platform: 'windows/amd64'
+            platform:  'windows/amd64'
             os: 'windows-latest'
           - name: 'App'
-            platform: 'darwin/universal'
+            platform:  'darwin/universal'
             os: 'macos-latest'
 
     runs-on: ${{ matrix.build.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
         with:
           submodules: recursive
 
       - name: Build wails
-        # Bypass the root discovery bug by calling the wails2 stack directly
-        uses: snider/build/actions/build/wails2@v3
+        uses: dAppServer/wails-build-action@v2.2
         id: build
         with:
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
           package: false
+          go-version: '1.20'
